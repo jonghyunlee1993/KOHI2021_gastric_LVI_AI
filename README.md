@@ -1,10 +1,10 @@
 # KOHI 2021 Medical imaging Team 5
 
 Members
+- Jiwon Kim (brian604@gmail.com)
+-
+-
 - 
--
--
--
 - Jonghyun Lee (jonghyunlee1993@gmail.com)
 
 We try to classify gastric LVI using digital pathology images

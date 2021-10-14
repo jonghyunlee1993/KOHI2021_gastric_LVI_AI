@@ -1,0 +1,6 @@
+Image
+opencv-python
+openslide-python
+pandas
+tqdm
+matplotlib

@@ -3,7 +3,7 @@
 Members
 - Jiwon Kim (kjwk1221@gmail.com)
 - 김정주 (jungjookim325@gmail.com)
-- 노명균 (mdmgnoh@gmail.com)
+- Myung-Giun Noh (mdmgnoh@gmail.com)
 - Kyoung Min Moon (ml.pulmogicu@gmail.com)
 - Jonghyun Lee (jonghyunlee1993@gmail.com)
 

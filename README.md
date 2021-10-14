@@ -1,4 +1,4 @@
-# KOHI 2021 Medical imaging Team 5
+# KOHI 2021 Medical imaging course; Team 5
 
 Members
 - Jiwon Kim (kjwk1221@gmail.com)

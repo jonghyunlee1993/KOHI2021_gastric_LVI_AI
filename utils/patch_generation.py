@@ -92,17 +92,18 @@ def extract_patch_from_slie_image(patient_id, slide_image, tissue_mask, class_na
                 if np.mean(patch_image_from_tissue_mask) / 255 >= tissue_threshold:
                     patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_up, patch_size_up)).convert("RGB"))
                     is_positive = True if class_names[i] == "LVI" else False
-
-                    save_patch_image(patient_id, patch_image, patch_size, is_positive, x, y, patch_result_path)
                     
+                    save_patch_image(patient_id, patch_image, patch_size, is_positive, x, y, patch_result_path)
+
 
 def save_patch_image(patient_id, patch_image, patch_size, is_positive, x, y, patch_result_path):
     patch_image = cv2.resize(patch_image, (patch_size, patch_size), interpolation=cv2.INTER_LINEAR)
 
     if is_positive:
         cv2.imwrite(os.path.join(patch_result_path, "positive", f"{patient_id}_LVI_patch_{x}-{y}.png"), patch_image)
-    else:
-        cv2.imwrite(os.path.join(patch_result_path, "negative", f"{patient_id}_non-LVI_patch_{x}-{y}.png"), patch_image)
+    elif is_negative:
+        if np.random.rand() <= 0.01:
+            cv2.imwrite(os.path.join(patch_result_path, "negative", f"{patient_id}_non-LVI_patch_{x}-{y}.png"), patch_image)
 
 
 if __name__ == "__main__":

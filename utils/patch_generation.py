@@ -101,7 +101,7 @@ def save_patch_image(patient_id, patch_image, patch_size, is_positive, x, y, pat
 
     if is_positive:
         cv2.imwrite(os.path.join(patch_result_path, "positive", f"{patient_id}_LVI_patch_{x}-{y}.png"), patch_image)
-    elif is_negative:
+    elif is_positive == False:
         if np.random.rand() <= 0.01:
             cv2.imwrite(os.path.join(patch_result_path, "negative", f"{patient_id}_non-LVI_patch_{x}-{y}.png"), patch_image)
 

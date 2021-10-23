@@ -120,17 +120,17 @@ if __name__ == "__main__":
 
     for slide_image_path in tqdm(flist):   
         subject_id = slide_image_path.split("/")[-1].split(".")[0]
-        # try:
-        slide_image, slide_image_dimension, original_dimension = read_slide_image(slide_image_path, level_of_interest)
+        
+        try:
+            slide_image, slide_image_dimension, original_dimension = read_slide_image(slide_image_path, level_of_interest)
 
-        tissue_mask_path = slide_image_path.replace(".svs", "_tissue_mask.png")
-        tissue_mask, tissue_mask_original_dimension = read_tissue_mask(tissue_mask_path, slide_image_dimension, original_dimension)
+            tissue_mask_path = slide_image_path.replace(".svs", "_tissue_mask.png")
+            tissue_mask, tissue_mask_original_dimension = read_tissue_mask(tissue_mask_path, slide_image_dimension, original_dimension)
 
-        geojson_path = slide_image_path.replace(".svs", ".geojson")
-        geojson = read_geojson(geojson_path)
-        class_names, square_coords = get_label_from_geojson(geojson, level_of_interest)
+            geojson_path = slide_image_path.replace(".svs", ".geojson")
+            geojson = read_geojson(geojson_path)
+            class_names, square_coords = get_label_from_geojson(geojson, level_of_interest)
 
-        extract_patch_from_slie_image(subject_id, slide_image, tissue_mask_original_dimension, class_names, square_coords, patch_size, stride, patch_result_path, tissue_threshold=0.7)
-        break
-        # except:
-        #     print(f"patch generation was not conducted: s{subject_id}")
+            extract_patch_from_slie_image(subject_id, slide_image, tissue_mask_original_dimension, class_names, square_coords, patch_size, stride, patch_result_path, tissue_threshold=0.7)
+        except:
+            print(f"patch generation was not conducted: s{subject_id}")

@@ -133,4 +133,4 @@ if __name__ == "__main__":
 
             extract_patch_from_slie_image(subject_id, slide_image, tissue_mask_original_dimension, class_names, square_coords, patch_size, stride, patch_result_path, tissue_threshold=0.7)
         except:
-            print(f"patch generation was not conducted: s{subject_id}")
+            print(f"patch generation was not conducted: {subject_id}")

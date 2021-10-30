@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from skimage.morphology import remove_small_objects
 
+
 def generate_binary_mask(slide_image, level_of_interest):
     slide_image_dimension = slide_image.level_dimensions[level_of_interest]
     slide_image = np.array(slide_image.read_region((0, 0), level_of_interest, (slide_image_dimension)).convert("RGB"))
@@ -29,14 +30,13 @@ def generate_binary_mask(slide_image, level_of_interest):
 
 
 def save_binary_mask(binary_mask, patient_id, my_path):
-    cv2.imwrite(os.path.join(my_path, f"{patient_id}_tissue_mask.png"), binary_mask)
+    cv2.imwrite(os.path.join(my_path, "tissue_mask", f"{patient_id}_tissue_mask.png"), binary_mask)
 
 
 if __name__ == "__main__":
-
     level_of_interest = 3
-    my_path = "./data/LVI_dataset"
-    WSI_flist = glob.glob(os.path.join(my_path, "*.svs"))
+    my_path = "./data/LVI_dataset/"
+    WSI_flist = glob.glob(os.path.join(my_path, "svs", "*.svs"))
 
     print(f"WSI: {len(WSI_flist)}")
 

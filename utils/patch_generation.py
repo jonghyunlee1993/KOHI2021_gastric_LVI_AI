@@ -6,6 +6,7 @@ import json
 import openslide
 import numpy as np
 import matplotlib.pyplot as plt
+from multiprocessing import Pool
 
 from tqdm import tqdm
 from skimage.io import imread
@@ -108,13 +109,14 @@ def save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_pat
 
     if is_positive:
         cv2.imwrite(os.path.join(patch_result_path, "positive", f"{patient_id}_positive_patch_{x}-{y}.png"), patch_image)
-    elif is_positive == False and np.random.rand() <= negative_sampling_rate:
-        cv2.imwrite(os.path.join(patch_result_path, "negative", f"{patient_id}_negative_patch_{x}-{y}.png"), patch_image)
+    else:
+        if np.random.rand() <= negative_sampling_rate:
+            cv2.imwrite(os.path.join(patch_result_path, "negative", f"{patient_id}_negative_patch_{x}-{y}.png"), patch_image)
 
 
 if __name__ == "__main__":
     level_of_interest = 2
-    patch_size = 350
+    patch_size = 300
     overlap = round(patch_size / 4)
     stride = patch_size - overlap
     
@@ -136,7 +138,7 @@ if __name__ == "__main__":
             geojson_path = slide_image_path.replace("/svs/", "/geojson/").replace(".svs", ".geojson")
             geojson = read_geojson(geojson_path)
             class_names, square_coords = get_label_from_geojson(geojson, level_of_interest)
-
+            
             extract_patch_from_slie_image(patient_id, slide_image, slide_image_dimension, tissue_mask, class_names, square_coords, patch_size, stride, patch_result_path, tissue_threshold=0.7)
         except:
-            print(f"patch generation was not conducted: {subject_id}")
+            print(f"patch generation was not conducted: {patient_id}")

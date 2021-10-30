@@ -101,7 +101,7 @@ def extract_patch_from_slie_image(patient_id, slide_image, slide_image_dimension
             if patch_positive_mask.sum() == 0 and patch_tissue_mask.mean() / 255 >= tissue_threshold:
                 patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_in_origin_dimension, patch_size_in_origin_dimension)).convert("RGB"))
                 save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, is_positive=False)
-                
+
 
 def save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, is_positive=True, negative_sampling_rate=0.3):
     patch_image = cv2.resize(patch_image, (patch_size, patch_size), interpolation=cv2.INTER_LINEAR)
@@ -127,17 +127,16 @@ if __name__ == "__main__":
     for slide_image_path in tqdm(flist):   
         patient_id = slide_image_path.split("/")[-1].split(".")[0]
         
-        # try:
-        slide_image, slide_image_dimension, level_of_interest_dimension = read_slide_image(slide_image_path, level_of_interest)
+        try:
+            slide_image, slide_image_dimension, level_of_interest_dimension = read_slide_image(slide_image_path, level_of_interest)
 
-        tissue_mask_path = slide_image_path.replace("/svs/", "/tissue_mask/").replace(".svs", "_tissue_mask.png")
-        tissue_mask = read_tissue_mask(tissue_mask_path, slide_image_dimension)
+            tissue_mask_path = slide_image_path.replace("/svs/", "/tissue_mask/").replace(".svs", "_tissue_mask.png")
+            tissue_mask = read_tissue_mask(tissue_mask_path, slide_image_dimension)
 
-        geojson_path = slide_image_path.replace("/svs/", "/geojson/").replace(".svs", ".geojson")
-        geojson = read_geojson(geojson_path)
-        class_names, square_coords = get_label_from_geojson(geojson, level_of_interest)
+            geojson_path = slide_image_path.replace("/svs/", "/geojson/").replace(".svs", ".geojson")
+            geojson = read_geojson(geojson_path)
+            class_names, square_coords = get_label_from_geojson(geojson, level_of_interest)
 
-        extract_patch_from_slie_image(patient_id, slide_image, slide_image_dimension, tissue_mask, class_names, square_coords, patch_size, stride, patch_result_path, tissue_threshold=0.7)
-        # except:
-        #     print(f"patch generation was not conducted: {subject_id}")
-        break
+            extract_patch_from_slie_image(patient_id, slide_image, slide_image_dimension, tissue_mask, class_names, square_coords, patch_size, stride, patch_result_path, tissue_threshold=0.7)
+        except:
+            print(f"patch generation was not conducted: {subject_id}")

@@ -19,11 +19,13 @@ def generate_result_directory(result_path):
     if not os.path.isdir(result_path):
         os.mkdir(result_path)
         
-        positive_dir = os.path.join(result_path, "positive")
-        negative_dir = os.path.join(result_path, "negative")
+        positive_dir = os.path.join(result_path, "LVI")
+        negative_dir = os.path.join(result_path, "Negative")
+        normal_dir = os.path.join(result_path, "Normal")
 
         os.mkdir(positive_dir)
         os.mkdir(negative_dir)
+        os.mkdir(normal_dir)
 
 
 def read_slide_image(slide_image_path, level_of_interest):
@@ -55,10 +57,13 @@ def get_label_from_geojson(geojson, level_of_interest):
 
     for annotation_item in geojson['features']:
         geometry = annotation_item['geometry']
-        
-        class_name = annotation_item['properties']['classification']['name']
-        class_names.append(class_name)
-        
+
+        try:
+            class_name = annotation_item['properties']['classification']['name']
+            class_names.append(class_name)
+        except:
+            pass
+
         if geometry['type'] == 'Polygon':
             coordinates = geometry['coordinates'][0]
 
@@ -87,37 +92,44 @@ def extract_patch_from_slie_image(patient_id, slide_image, slide_image_dimension
     # generate positive patch
     for i, box in enumerate(square_coords):
         if class_names[i] == "LVI":
-            for x in range(box[0] - int(patch_size_in_origin_dimension / 2), box[2] - int(patch_size_in_origin_dimension / 2), stride):
-                for y in range(box[1] - int(patch_size_in_origin_dimension / 2), box[3] - int(patch_size_in_origin_dimension / 2), stride): 
+            for x in range(box[0] - int(patch_size_in_origin_dimension / 2), box[2] + int(patch_size_in_origin_dimension / 2), stride):
+                if x + patch_size_in_origin_dimension > box[2] + int(patch_size_in_origin_dimension / 2):
+                    break
+
+                for y in range(box[1] - int(patch_size_in_origin_dimension / 2), box[3] + int(patch_size_in_origin_dimension / 2), stride): 
+                    if y + patch_size_in_origin_dimension > box[3] + int(patch_size_in_origin_dimension / 2):
+                        break
+
                     positive_mask[y:y+patch_size_in_origin_dimension, x:x+patch_size_in_origin_dimension] = True
                     patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_in_origin_dimension, patch_size_in_origin_dimension)).convert("RGB"))
-                    save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, is_positive=True)
+                    save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, class_names[i])
 
-    # generate negative patch
-    for x in range(0, slide_image_dimension[1], patch_size_in_origin_dimension):
-        for y in range(0, slide_image_dimension[0], patch_size_in_origin_dimension):
-            patch_positive_mask = positive_mask[y:y+patch_size_in_origin_dimension, x:x+patch_size_in_origin_dimension]
-            patch_tissue_mask = tissue_mask[y:y+patch_size_in_origin_dimension, x:x+patch_size_in_origin_dimension]
+        elif class_names[i] in ("Negative", "Normal"):
+            for x in range(0, slide_image_dimension[1], patch_size_in_origin_dimension):
+                for y in range(0, slide_image_dimension[0], patch_size_in_origin_dimension):
+                    patch_positive_mask = positive_mask[y:y + patch_size_in_origin_dimension, x:x + patch_size_in_origin_dimension]
+                    patch_tissue_mask = tissue_mask[y:y + patch_size_in_origin_dimension, x:x + patch_size_in_origin_dimension]
 
-            if patch_positive_mask.sum() == 0 and patch_tissue_mask.mean() / 255 >= tissue_threshold:
-                patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_in_origin_dimension, patch_size_in_origin_dimension)).convert("RGB"))
-                save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, is_positive=False)
+                    if patch_positive_mask.sum() == 0 and patch_tissue_mask.mean() / 255 >= tissue_threshold:
+                        if class_names[i] == "Normal":
+                            if np.random.rand() <= 0.3:
+                                patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_in_origin_dimension, patch_size_in_origin_dimension)).convert("RGB"))
+                                save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, class_names[i])
+                        else:
+                            patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_in_origin_dimension, patch_size_in_origin_dimension)).convert("RGB"))
+                            save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, class_names[i])
+                    
 
-
-def save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, is_positive=True, negative_sampling_rate=0.3):
+def save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, class_name):
     patch_image = cv2.resize(patch_image, (patch_size, patch_size), interpolation=cv2.INTER_LINEAR)
 
-    if is_positive:
-        cv2.imwrite(os.path.join(patch_result_path, "positive", f"{patient_id}_positive_patch_{x}-{y}.png"), patch_image)
-    else:
-        if np.random.rand() <= negative_sampling_rate:
-            cv2.imwrite(os.path.join(patch_result_path, "negative", f"{patient_id}_negative_patch_{x}-{y}.png"), patch_image)
+    cv2.imwrite(os.path.join(patch_result_path, class_name, f"{patient_id}_{class_name}_patch_{x}-{y}.png"), patch_image)
 
 
 if __name__ == "__main__":
     level_of_interest = 2
     patch_size = 300
-    overlap = round(patch_size / 4)
+    overlap = round(patch_size / 5)
     stride = patch_size - overlap
     
     data_path = "./data/LVI_dataset"
@@ -128,17 +140,14 @@ if __name__ == "__main__":
 
     for slide_image_path in tqdm(flist):   
         patient_id = slide_image_path.split("/")[-1].split(".")[0]
+
+        slide_image, slide_image_dimension, level_of_interest_dimension = read_slide_image(slide_image_path, level_of_interest)
+
+        tissue_mask_path = slide_image_path.replace("/svs/", "/tissue_mask/").replace(".svs", "_tissue_mask.png")
+        tissue_mask = read_tissue_mask(tissue_mask_path, slide_image_dimension)
+
+        geojson_path = slide_image_path.replace("/svs/", "/geojson/").replace(".svs", ".geojson")
+        geojson = read_geojson(geojson_path)
+        class_names, square_coords = get_label_from_geojson(geojson, level_of_interest)
         
-        try:
-            slide_image, slide_image_dimension, level_of_interest_dimension = read_slide_image(slide_image_path, level_of_interest)
-
-            tissue_mask_path = slide_image_path.replace("/svs/", "/tissue_mask/").replace(".svs", "_tissue_mask.png")
-            tissue_mask = read_tissue_mask(tissue_mask_path, slide_image_dimension)
-
-            geojson_path = slide_image_path.replace("/svs/", "/geojson/").replace(".svs", ".geojson")
-            geojson = read_geojson(geojson_path)
-            class_names, square_coords = get_label_from_geojson(geojson, level_of_interest)
-            
-            extract_patch_from_slie_image(patient_id, slide_image, slide_image_dimension, tissue_mask, class_names, square_coords, patch_size, stride, patch_result_path, tissue_threshold=0.7)
-        except:
-            print(f"patch generation was not conducted: {patient_id}")
+        extract_patch_from_slie_image(patient_id, slide_image, slide_image_dimension, tissue_mask, class_names, square_coords, patch_size, stride, patch_result_path, tissue_threshold=0.7)

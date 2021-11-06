@@ -91,33 +91,35 @@ def extract_patch_from_slie_image(patient_id, slide_image, slide_image_dimension
 
     # generate positive patch
     for i, box in enumerate(square_coords):
-        if class_names[i] == "LVI":
-            for x in range(box[0] - int(patch_size_in_origin_dimension / 2), box[2] + int(patch_size_in_origin_dimension / 2), stride):
-                if x + patch_size_in_origin_dimension > box[2] + int(patch_size_in_origin_dimension / 2):
-                    break
-
-                for y in range(box[1] - int(patch_size_in_origin_dimension / 2), box[3] + int(patch_size_in_origin_dimension / 2), stride): 
-                    if y + patch_size_in_origin_dimension > box[3] + int(patch_size_in_origin_dimension / 2):
+        try:
+            if class_names[i] == "LVI":
+                for x in range(box[0] - int(patch_size_in_origin_dimension / 2), box[2] + int(patch_size_in_origin_dimension / 2), stride):
+                    if x + patch_size_in_origin_dimension > box[2] + int(patch_size_in_origin_dimension / 2):
                         break
 
-                    positive_mask[y:y+patch_size_in_origin_dimension, x:x+patch_size_in_origin_dimension] = True
-                    patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_in_origin_dimension, patch_size_in_origin_dimension)).convert("RGB"))
-                    save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, class_names[i])
+                    for y in range(box[1] - int(patch_size_in_origin_dimension / 2), box[3] + int(patch_size_in_origin_dimension / 2), stride): 
+                        if y + patch_size_in_origin_dimension > box[3] + int(patch_size_in_origin_dimension / 2):
+                            break
 
-        elif class_names[i] in ("Negative", "Normal"):
-            for x in range(0, slide_image_dimension[1], patch_size_in_origin_dimension):
-                for y in range(0, slide_image_dimension[0], patch_size_in_origin_dimension):
-                    patch_positive_mask = positive_mask[y:y + patch_size_in_origin_dimension, x:x + patch_size_in_origin_dimension]
-                    patch_tissue_mask = tissue_mask[y:y + patch_size_in_origin_dimension, x:x + patch_size_in_origin_dimension]
+                        positive_mask[y:y+patch_size_in_origin_dimension, x:x+patch_size_in_origin_dimension] = True
+                        patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_in_origin_dimension, patch_size_in_origin_dimension)).convert("RGB"))
+                        save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, class_names[i])
 
-                    if patch_positive_mask.sum() == 0 and patch_tissue_mask.mean() / 255 >= tissue_threshold:
-                        if class_names[i] == "Normal":
-                            if np.random.rand() <= 0.3:
+            elif class_names[i] in ("Negative", "Normal"):
+                for x in range(0, slide_image_dimension[1], patch_size_in_origin_dimension):
+                    for y in range(0, slide_image_dimension[0], patch_size_in_origin_dimension):
+                        patch_positive_mask = positive_mask[y:y + patch_size_in_origin_dimension, x:x + patch_size_in_origin_dimension]
+                        patch_tissue_mask = tissue_mask[y:y + patch_size_in_origin_dimension, x:x + patch_size_in_origin_dimension]
+
+                        if patch_positive_mask.sum() == 0 and patch_tissue_mask.mean() / 255 >= tissue_threshold:
+                            if class_names[i] == "Normal":
                                 patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_in_origin_dimension, patch_size_in_origin_dimension)).convert("RGB"))
                                 save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, class_names[i])
-                        else:
-                            patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_in_origin_dimension, patch_size_in_origin_dimension)).convert("RGB"))
-                            save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, class_names[i])
+                            else:
+                                patch_image = np.array(slide_image.read_region((x, y), 0, (patch_size_in_origin_dimension, patch_size_in_origin_dimension)).convert("RGB"))
+                                save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, class_names[i])
+        except:
+            print(f"Label Error: {i}")
                     
 
 def save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_path, class_name):
@@ -129,7 +131,8 @@ def save_patch_image(patient_id, patch_image, patch_size, x, y, patch_result_pat
 if __name__ == "__main__":
     level_of_interest = 2
     patch_size = 300
-    overlap = round(patch_size / 5)
+    # overlap = round(patch_size / 5)
+    overlap = 0
     stride = patch_size - overlap
     
     data_path = "./data/LVI_dataset"

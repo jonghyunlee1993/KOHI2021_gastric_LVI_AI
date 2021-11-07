@@ -1,6 +1,8 @@
 data
 results
 weights
+lightning_logs
+lightning_logs/*
 
 ipynb_checkpointspynb_checkpoints
 */.ipynb_checkpoints/*

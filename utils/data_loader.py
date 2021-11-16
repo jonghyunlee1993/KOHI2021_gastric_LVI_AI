@@ -4,6 +4,7 @@ import glob
 import numpy as np
 import pandas as pd
 
+from config import *
 from torch.utils.data import Dataset, DataLoader
 
 import albumentations as A

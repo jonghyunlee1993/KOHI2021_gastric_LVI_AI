@@ -1,8 +1,10 @@
 import timm
 import torchmetrics
+import torch
+import torch.nn.functional as F
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
-
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 class ImageClassifier(pl.LightningModule):
     def __init__(self, model_name, learning_rate, num_classes=3):
@@ -48,5 +50,7 @@ class ImageClassifier(pl.LightningModule):
         return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "valid_loss"}
 
     
-def define_callbacks(patience):
-    return EarlyStopping('valid_loss', patience=patience)
+def define_callbacks(patience, ckpt_path):
+    
+    return [EarlyStopping('valid_loss', patience=patience),
+            ModelCheckpoint(monitor=ckpt_path)]

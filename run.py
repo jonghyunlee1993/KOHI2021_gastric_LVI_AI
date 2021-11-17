@@ -23,7 +23,7 @@ if __name__ == "__main__":
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True, shuffle=True)
 
     valid_dataset = LVIDataset(X_valid, y_valid, transforms=valid_transforms)
-    valid_dataloader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True, shuffle=True)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True, shuffle=False)
 
     test_dataset = LVIDataset(X_test, y_test, transforms=valid_transforms)
     test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=True, shuffle=False)
@@ -37,5 +37,4 @@ if __name__ == "__main__":
         trainer = pl.Trainer(gpus=1, max_epochs=N_EPOCHS, enable_progress_bar=True, callbacks=callbacks)
 
     trainer.fit(classifier, train_dataloader, valid_dataloader)
-    torch.save(classifer.model.state_dict(), FINAL_WEIGHTS_PATH)
 

@@ -4,10 +4,16 @@ from utils.data_loader import *
 from model.model import *
 
 if __name__ == "__main__":
-    positive_flist, negative_flist, normal_flist = glob.glob(DATA_POSITIVE_PATH), glob.glob(DATA_NEGATIVE_PATH), glob.glob(DATA_NORMAL_PATH)
-    positive_df, negative_df, normal_df = generate_patch_df(positive_flist, DATA_POSITIVE_LABEL), generate_patch_df(negative_flist, DATA_NEGATIVE_LABEL), generate_patch_df(normal_flist, DATA_NORMAL_LABEL)
+    positive_flist = glob.glob(DATA_POSITIVE_PATH)
+    negative_flist = glob.glob(DATA_NEGATIVE_PATH)
+    normal_flist = glob.glob(DATA_NORMAL_PATH)
+    
+    background_flist = negative_flist + normal_flist
+    
+    positive_df = generate_patch_df(positive_flist, DATA_POSITIVE_LABEL)
+    background_df = generate_patch_df(background_flist, DATA_BACKGROUND_LABEL)
 
-    X_train, X_valid, X_test, y_train, y_valid, y_test = define_dataset(positive_df, negative_df, normal_df, sampling_rate=0.2)
+    X_train, X_valid, X_test, y_train, y_valid, y_test = define_dataset_pos_back(positive_df, background_df, sampling_rate=0.2)
     print(f"X train: {X_train.shape}\nX valid: {X_valid.shape}\nX test: {X_test.shape}")
     print(f"y train: {y_train.shape}\ny valid: {y_valid.shape}\ny test: {y_test.shape}")
 

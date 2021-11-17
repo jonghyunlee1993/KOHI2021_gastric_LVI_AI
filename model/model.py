@@ -51,6 +51,7 @@ class ImageClassifier(pl.LightningModule):
 
     
 def define_callbacks(patience, ckpt_path):
+    early_stopping = EarlyStopping('valid_loss', patience=patience)
+    check_points = ModelCheckpoint(monitor="valid_loss", mode="min", dirpath=ckpt_path, save_top_k=1)
     
-    return [EarlyStopping('valid_loss', patience=patience),
-            ModelCheckpoint(monitor=ckpt_path)]
+    return [early_stopping, check_points]

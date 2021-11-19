@@ -7,7 +7,7 @@ from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 class ImageClassifier(pl.LightningModule):
-    def __init__(self, model_name, learning_rate, num_classes=3):
+    def __init__(self, model_name, learning_rate, num_classes=2):
         super(ImageClassifier, self).__init__()
         self.model = timm.create_model(model_name, num_classes=num_classes, pretrained=True)
         self.learning_rate = learning_rate
@@ -15,6 +15,12 @@ class ImageClassifier(pl.LightningModule):
         self.train_accuracy = torchmetrics.Accuracy()
         self.valid_accuracy = torchmetrics.Accuracy()
         self.test_accuracy = torchmetrics.Accuracy()
+    
+    
+    def forward(self, x):
+        pred = self.model(x)
+        
+        return pred
     
     
     def training_step(self, batch, batch_idx):
